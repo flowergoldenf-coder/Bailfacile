@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<title>BailFacile — Plateforme de location en France</title>
+<style>
+:root{--ink:#14213d;--blue:#1d4ed8;--blue-l:#e8eefc;--bg:#f5f6fa;--card:#fff;--line:#e3e6ee;--ok:#15803d;--ok-l:#e6f4ea;--warn:#b45309;--warn-l:#fdf1e0;--bad:#b91c1c;--bad-l:#fbe9e9;--mut:#667085}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.logo{font-weight:700;font-size:20px;letter-spacing:.2px}.logo span{color:#8fb0ff}
+.roles{display:flex;background:#24345d;border-radius:10px;padding:3px}
+.roles button{border:0;background:none;color:#cbd5f0;padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+.roles button.on{background:#fff;color:var(--ink);font-weight:600}
+.demo{background:var(--warn-l);color:var(--warn);font-size:13px;padding:8px 20px;border-bottom:1px solid #f1d9b3}
+main{max-width:1050px;margin:0 auto;padding:18px 16px 60px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font:inherit;color:var(--mut);border-bottom:3px solid transparent}
+.tabs button.on{color:var(--blue);border-color:var(--blue);font-weight:600}
+h2{margin:0 0 12px;font-size:20px}h3{margin:0 0 8px;font-size:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.grid .card{margin:0;display:flex;flex-direction:column;gap:6px}
+.price{font-size:20px;font-weight:700;color:var(--blue)}.mut{color:var(--mut);font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>*{flex:1;min-width:130px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:3px}
+input,select{width:100%;padding:9px 10px;border:1px solid #cfd5e3;border-radius:9px;font:inherit;background:#fff;color:var(--ink)}
+button.b{border:0;border-radius:9px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--blue);color:#fff}
+button.b.sec{background:var(--blue-l);color:var(--blue)}button.b.ok{background:var(--ok)}button.b.bad{background:var(--bad-l);color:var(--bad)}
+button.b.sm{padding:5px 10px;font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--blue-l);color:var(--blue)}
+.badge.ok{background:var(--ok-l);color:var(--ok)}.badge.warn{background:var(--warn-l);color:var(--warn)}.badge.bad{background:var(--bad-l);color:var(--bad)}
+.steps{display:flex;gap:4px;margin:10px 0;flex-wrap:wrap}
+.steps div{flex:1;min-width:90px;font-size:12px;text-align:center;padding:6px 4px;border-radius:8px;background:#eef0f5;color:var(--mut)}
+.steps div.done{background:var(--ok-l);color:var(--ok);font-weight:600}.steps div.cur{background:var(--blue-l);color:var(--blue);font-weight:600}
+.bar{height:8px;background:#e6e9f2;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok);transition:width .2s}
+.doc{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.doc:last-child{border:0}
+.note{background:var(--warn-l);color:#7a4a0c;border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0}
+.info{background:var(--blue-l);color:#1e3a8a;border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0}
+.sub{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+pre{white-space:pre-wrap;background:#fafbfd;border:1px solid var(--line);border-radius:10px;padding:12px;font:13px/1.55 ui-monospace,Menlo,monospace;max-height:340px;overflow:auto}
+a{color:var(--blue)}
+a.b{display:inline-block;text-decoration:none}
+textarea{width:100%;padding:9px 10px;border:1px solid #cfd5e3;border-radius:9px;font:inherit;min-height:74px;margin:6px 0}
+button:disabled{opacity:.45;cursor:not-allowed}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.links .card{margin:0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90%}
+.empty{text-align:center;color:var(--mut);padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Bail<span>Facile</span> <span style="font-weight:400;font-size:13px;color:#cbd5f0">· location partout en France</span></div>
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span id="who" style="color:#cbd5f0;font-size:14px"></span><div class="roles" id="roles"></div><button class="b sec sm" id="lo" data-act="logout" style="display:none">Se déconnecter</button></div>
+</header>
+<main id="app"></main>
+<div id="toast"></div>
+
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur=n=>Number(n).toLocaleString('fr-FR')+' €';
+const U={timeZone:'UTC'};
+const fmtDate=s=>new Date(s+'T00:00:00Z').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric',...U});
+const fmtMonth=s=>new Date(s+'T00:00:00Z').toLocaleDateString('fr-FR',{month:'long',year:'numeric',...U});
+const fmtSlot=s=>new Date(s.d+'T'+s.t).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+' à '+s.t.replace(':','h');
+const addMonths=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCMonth(d.getUTCMonth()+n);return d.toISOString().slice(0,10)};
+const addDays=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const TODAY=new Date().toISOString().slice(0,10);
+
+const DOCS=[['cni','Pièce d’identité'],['dom','Justificatif de domicile'],['paie','3 derniers bulletins de salaire'],['impots','Dernier avis d’imposition'],['contrat','Contrat de travail / attestation employeur']];
+const M=m=>({label:`Bail mobilité — ${m} mois`,months:m,renew:false,mob:true,depot:()=>0,ref:'loi n° 89-462 du 6 juillet 1989 (art. 25-12 et suivants)'});
+const TYPES={
+ meuble12:{label:'Bail meublé — 1 an',months:12,renew:true,depot:m=>m,ref:'loi n° 89-462 du 6 juillet 1989 (art. 25-3 et suivants)'},
+ mobilite6:M(6),mobilite7:M(7),mobilite8:M(8),mobilite9:M(9),mobilite10:M(10),
+ vide36:{label:'Bail location vide — 3 ans',months:36,renew:true,depot:m=>m,ref:'loi n° 89-462 du 6 juillet 1989 (titre Ier)'}
+};
+const GARANTS=[
+ {id:'visale',nom:'Visale (Action Logement)',desc:'Garantie gratuite de l’État/Action Logement, sous conditions (jeunes, salariés précaires…).',url:'https://www.visale.fr'},
+ {id:'garantme',nom:'Garantme',desc:'Garant en ligne payant, dossier traité rapidement.',url:'https://www.garantme.fr'},
+ {id:'unkle',nom:'Unkle',desc:'Alternative de garant en ligne pour les locataires sans caution familiale.',url:'https://www.unkle.fr'}
+];
+const S={
+ user:null,role:'tenant',loading:true,auth:{mode:'login'},tab:'annonces',filters:{q:'',max:'',furn:''},
+ listings:[],apps:[],tenantApps:[],ownerApps:[],mails:[],prev:null,spaceInit:false,
+ profile:{nom:'',email:'',tel:'',situation:'CDI',revenu:'',docs:{},files:{}},guarantor:null,
+ caution:{listingId:0,months:12,start:addDays(TODAY,14),scope:'initiale',gnom:'',gadr:'',gmail:'',plafond:'',text:''},
+};
+const listing=id=>S.listings.find(l=>l.id==id);
+const appById=id=>S.apps.find(a=>a.id==id);
+const dossierOk=()=>{const p=S.profile;return p.nom.trim()&&p.email.trim()&&p.tel.trim()&&Number(p.revenu)>0&&DOCS.every(d=>p.docs[d[0]])};
+const dossierPct=()=>{const p=S.profile;const f=[p.nom.trim(),p.email.trim(),p.tel.trim(),Number(p.revenu)>0,...DOCS.map(d=>p.docs[d[0]])];return Math.round(f.filter(Boolean).length/f.length*100)};
+let tt;const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',3200)};
+
+/* ---------- rendering ---------- */
+function authHtml(){const a=S.auth,reg=a.mode=='register';
+ return `<div class="card" style="max-width:440px;margin:30px auto"><h2>${reg?'Créer un compte':'Connexion'}</h2>
+ ${reg?`<label>Nom complet</label><input id="an" autocomplete="name"><label style="margin-top:10px">Je commence par</label><select id="ar"><option value="tenant">Espace locataire</option><option value="owner">Espace propriétaire</option></select><div class="mut" style="margin-top:4px">Votre compte donne accès aux deux espaces : chercher un logement et déposer une annonce.</div>`:''}
+ <label style="margin-top:10px">E-mail</label><input id="ae" type="email" autocomplete="email">
+ <label style="margin-top:10px">Mot de passe${reg?' (8 caractères minimum)':''}</label><input id="ap" type="password" autocomplete="${reg?'new-password':'current-password'}">
+ <div style="margin-top:14px"><button class="b" data-act="${reg?'register':'login'}">${reg?'Créer mon compte':'Se connecter'}</button> <button class="b sec" data-act="authmode">${reg?'J’ai déjà un compte':'Créer un compte'}</button></div>
+ <div class="mut" style="margin-top:10px">Vos alertes e-mail sont envoyées à l’adresse du compte.</div></div>`}
+function render(){
+ const rl=document.getElementById('roles'),app=document.getElementById('app');
+ const who=document.getElementById('who'),lo=document.getElementById('lo');
+ if(!S.user){rl.innerHTML='';who.textContent='';lo.style.display='none';app.innerHTML=S.loading?'<div class="empty">Chargement…</div>':authHtml();return}
+ who.textContent=S.user.name;lo.style.display='';
+ rl.innerHTML=`<button class="${S.role=='tenant'?'on':''}" data-act="space" data-v="tenant">Espace locataire</button><button class="${S.role=='owner'?'on':''}" data-act="space" data-v="owner">Espace propriétaire</button>`;
+ const tabs=S.role=='tenant'?[['annonces','Annonces'],['dossier','Mon dossier'],['cands','Mes candidatures'],['mails','Alertes e-mail']]:[['annonces','Mes annonces'],['cands','Candidatures reçues'],['mails','Alertes e-mail']];
+ if(!tabs.some(t=>t[0]==S.tab))S.tab='annonces';
+ const nb=S.apps.length,nm=S.mails.length;
+ let h=`<div class="tabs">${tabs.map(t=>`<button class="${S.tab==t[0]?'on':''}" data-act="tab" data-v="${t[0]}">${t[1]}${t[0]=='cands'&&nb?` (${nb})`:''}${t[0]=='mails'&&nm?` (${nm})`:''}</button>`).join('')}</div>`;
+ if(S.tab=='mails')h+=tMails();
+ else if(S.role=='tenant')h+=S.tab=='annonces'?tAnnonces():S.tab=='dossier'?tDossier():tCands();
+ else h+=S.tab=='annonces'?oAnnonces():oCands();
+ const y=window.scrollY;app.innerHTML=h;window.scrollTo(0,y);
+}
+function filtered(){const f=S.filters,q=f.q.trim().toLowerCase();
+ return S.listings.filter(l=>l.ownerId!=S.user.id&&(!q||(l.city+' '+l.dept).toLowerCase().includes(q))&&(!f.max||l.rent<=Number(f.max))&&(!f.furn||(f.furn=='m'?l.furn:!l.furn)))}
+function card(l,owner){
+ const n=S.apps.filter(a=>a.listingId==l.id).length;
+ return `<div class="card"><div class="row" style="align-items:start"><div><b>${esc(l.title)}</b><div class="mut">${esc(l.city)} (${esc(l.dept)})</div></div><div style="flex:0 0 auto;text-align:right"><div class="price">${eur(l.rent)}</div><div class="mut">+ ${eur(l.charges)} charges</div></div></div>
+ <div class="mut">${l.surface} m² · ${l.rooms} pièce${l.rooms>1?'s':''} · <span class="badge">${l.furn?'Meublé':'Vide'}</span></div><div>${esc(l.desc)}</div>
+ ${owner?`<div class="mut">${n} candidature${n>1?'s':''}</div>`:`<div style="margin-top:auto"><button class="b" data-act="apply" data-id="${l.id}">Déposer mon dossier</button></div>`}</div>`}
+function tAnnonces(){const f=S.filters,r=filtered();
+ return `<h2>Trouver un logement partout en France</h2><div class="info">Vous avez un logement à louer ou à sous-louer ? <button class="b sec sm" data-act="space" data-v="owner">Déposer une annonce</button></div><div class="card"><div class="row">
+ <div><label>Ville, quartier ou département</label><input id="fq" value="${esc(f.q)}" placeholder="Ex : Lyon, 33, Réunion…"></div>
+ <div><label>Loyer max (€)</label><input id="fmax" type="number" value="${esc(f.max)}"></div>
+ <div><label>Type</label><select id="ffurn"><option value="">Tous</option><option value="m" ${f.furn=='m'?'selected':''}>Meublé</option><option value="v" ${f.furn=='v'?'selected':''}>Vide</option></select></div>
+ <div style="flex:0 0 auto"><button class="b" data-act="search">Rechercher</button></div></div></div>
+ ${r.length?`<div class="grid">${r.map(l=>card(l)).join('')}</div>`:`<div class="empty">Aucune annonce ne correspond.</div>`}`}
+function tDossier(){const p=S.profile,pct=dossierPct();
+ return `<h2>Mon dossier locataire</h2>
+ <div class="card"><div class="row" style="align-items:center"><div><b>Complétude du dossier : <span id="pct">${pct}</span> %</b></div></div><div class="bar" style="margin-top:8px"><i id="pbar" style="width:${pct}%"></i></div></div>
+ <div class="card"><h3>Informations</h3><div class="row">
+ <div><label>Nom et prénom</label><input data-f="nom" value="${esc(p.nom)}"></div>
+ <div><label>E-mail</label><input data-f="email" type="email" value="${esc(p.email)}"></div>
+ <div><label>Téléphone</label><input data-f="tel" value="${esc(p.tel)}"></div></div>
+ <div class="row" style="margin-top:10px"><div><label>Situation professionnelle</label><select data-f="situation">${['CDI','CDD','Fonctionnaire','Indépendant','Étudiant','Retraité','Autre'].map(s=>`<option ${p.situation==s?'selected':''}>${s}</option>`).join('')}</select></div>
+ <div><label>Revenus nets mensuels (€)</label><input data-f="revenu" type="number" min="0" value="${esc(p.revenu)}"></div></div></div>
+ <div class="card"><h3>Pièces justificatives</h3>${DOCS.map(([k,n])=>`<div class="doc"><span>${n}</span><span>${p.docs[k]?`<span class="badge ok">✓ ${esc(p.docs[k])}</span> `:''}<label class="b sec sm" style="display:inline-block;cursor:pointer;margin:0;font-size:13px;padding:5px 10px;border-radius:9px">${p.docs[k]?'Remplacer':'Ajouter'}<input type="file" data-doc="${k}" hidden></label></span></div>`).join('')}
+ <div class="mut" style="margin-top:6px">Vos pièces sont enregistrées sur le serveur et visibles uniquement des propriétaires auxquels vous candidatez.</div></div>
+ <div class="card"><h3>Simulation APL (aide au logement)</h3>
+ <div class="mut" style="margin-bottom:8px">Facultatif. Faites la simulation officielle sur le site de la CAF, puis recopiez le montant obtenu et joignez la capture ou le PDF du résultat. Le propriétaire voit ainsi votre loyer restant à charge. C’est une estimation : seule la CAF décide du droit et du montant réels.</div>
+ <a class="b sec sm" href="https://www.caf.fr/allocataires/mes-services-en-ligne/estimer-vos-droits" target="_blank" rel="noopener" style="display:inline-block">Ouvrir le simulateur officiel ↗</a>
+ <div class="row" style="margin-top:10px;align-items:flex-end"><div><label>APL estimée (€ par mois)</label><input id="aplm" type="number" min="0" value="${esc((p.apl&&p.apl.montant)||'')}"></div>
+ <div style="flex:0 0 auto"><button class="b sec" data-act="aplsave">Enregistrer</button></div></div>
+ <div class="doc" style="margin-top:8px"><span>Capture ou PDF de la simulation</span><span>${p.docs.apl?`<span class="badge ok">✓ ${esc(p.docs.apl)}</span> `:''}<label class="b sec sm" style="display:inline-block;cursor:pointer;margin:0;font-size:13px;padding:5px 10px;border-radius:9px">${p.docs.apl?'Remplacer':'Ajouter'}<input type="file" data-doc="apl" hidden></label></span></div>
+ ${p.apl&&p.apl.montant?`<div class="info" style="margin-top:8px">Simulation enregistrée : environ <b>${eur(p.apl.montant)}</b>/mois. ${S.tenantApps.filter(a=>a.status!='refusee').map(a=>`<div style="margin-top:6px">${esc(listing(a.listingId).title)} : ${a.aplSentAt?'<span class="badge ok">envoyée au propriétaire</span>':''} <button class="b sec sm" data-act="sendapl" data-id="${a.id}">${a.aplSentAt?'Renvoyer':'Envoyer au propriétaire'}</button></div>`).join('')}</div>`:''}</div>
+ <div class="card"><h3>Mon garant</h3>
+ ${S.guarantor?`<div class="info">Garant choisi : <b>${esc(S.guarantor.label)}</b> <button class="b bad sm" data-act="noguar">Retirer</button></div>`:`<div class="mut" style="margin-bottom:8px">Pas de garant choisi. Ouvrez un des services ci-dessous, puis revenez sélectionner celui que vous avez retenu.</div>`}
+ <div class="links">${GARANTS.map(g=>`<div class="card"><b>${g.nom}</b><div class="mut" style="margin:4px 0 8px">${g.desc}</div><a href="${g.url}" target="_blank" rel="noopener">Ouvrir le site ↗</a><div style="margin-top:8px"><button class="b sec sm" data-act="guar" data-v="${g.id}">Je choisis ${g.nom.split(' ')[0]}</button></div></div>`).join('')}
+ <div class="card"><b>Caution d’un proche</b><div class="mut" style="margin:4px 0 8px">Une personne physique se porte caution (acte de cautionnement).</div><input id="gn" placeholder="Nom du garant" style="margin-bottom:6px"><input id="ge" placeholder="E-mail du garant" style="margin-bottom:8px"><button class="b sec sm" data-act="guarp">Ajouter ce garant</button></div></div></div>${cautionCard()}`}
+function cautionDl(text,kind){const raw=text.replace(/[\u202f\u00a0]/g,' '),nm='Acte-de-caution-solidaire';
+ if(kind=='pdf'){if(!window.jspdf){toast('PDF indisponible : téléchargez le texte.');return}makePdf(raw.replace(/€/g,'EUR')).save(nm+'.pdf');return}
+ const u=URL.createObjectURL(new Blob([raw],{type:'text/plain;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download=nm+'.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function cautionSendBox(c){const apps=S.tenantApps.filter(a=>a.status!='refusee');
+ if(!apps.length)return `<div class="note" style="margin-top:8px">Pour envoyer l’acte à un propriétaire, déposez d’abord une candidature (onglet Annonces).</div>`;
+ const sel=apps.find(a=>a.listingId==c.listingId)||apps[0];
+ return `<div class="row" style="margin-top:8px;align-items:flex-end"><div><label>Envoyer au propriétaire de</label><select id="csel">${apps.map(a=>`<option value="${a.id}" ${a.id==sel.id?'selected':''}>${esc(listing(a.listingId).title)}${a.cautionDoc?' (déjà envoyé)':''}</option>`).join('')}</select></div><div style="flex:0 0 auto"><button class="b ok" data-act="csendform">Envoyer au propriétaire</button></div></div>`}
+function cautionCard(){const c=S.caution;
+ return `<div class="card"><h3>Générateur d’acte de caution solidaire</h3>
+ <div class="mut" style="margin-bottom:8px">Pour un garant personne physique (proche, famille). L’acte est généré à partir du logement visé ; le garant doit recopier lui-même la mention manuscrite, puis signer.</div>
+ <details style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--blue)">Conditions et poursuites en cas de loyer impayé</summary>${CAUTION_INFO}</details>
+ <div class="row"><div><label>Logement concerné</label><select data-c="listingId">${S.listings.map(l=>`<option value="${l.id}" ${c.listingId==l.id?'selected':''}>${esc(l.title)} — ${esc(l.city)} (${eur(l.rent+l.charges)})</option>`).join('')}</select></div>
+ <div><label>Durée du bail</label><select data-c="months">${[[6,'6 mois (bail mobilité)'],[7,'7 mois (bail mobilité)'],[8,'8 mois (bail mobilité)'],[9,'9 mois (bail mobilité)'],[10,'10 mois (bail mobilité)'],[12,'12 mois (meublé)'],[36,'36 mois (location vide)']].map(([m,t])=>`<option value="${m}" ${c.months==m?'selected':''}>${t}</option>`).join('')}</select></div>
+ <div><label>Date d’entrée</label><input type="date" data-c="start" value="${esc(c.start)}"></div></div>
+ <div class="row" style="margin-top:10px"><div><label>Nom du garant</label><input data-c="gnom" value="${esc(c.gnom)}"></div><div><label>Adresse du garant</label><input data-c="gadr" value="${esc(c.gadr)}"></div><div><label>E-mail du garant</label><input data-c="gmail" value="${esc(c.gmail)}"></div></div>
+ <div class="row" style="margin-top:10px"><div><label>Engagement de la caution</label><select data-c="scope"><option value="initiale" ${c.scope=='initiale'?'selected':''}>Durée initiale du bail uniquement</option><option value="indeterminee" ${c.scope=='indeterminee'?'selected':''}>Durée du bail, reconductions comprises</option></select></div>
+ <div><label>Plafond en € (vide = loyers+charges sur la durée)</label><input type="number" data-c="plafond" value="${esc(c.plafond)}"></div><div style="flex:0 0 auto"><button class="b" data-act="cgen">Générer l’acte</button></div></div>
+ ${c.text?`<pre style="margin-top:12px">${esc(c.text)}</pre><div style="margin:8px 0"><button class="b" data-act="cdl" data-id="form" data-v="pdf">⬇ Télécharger l’acte (PDF)</button> <button class="b sec" data-act="cdl" data-id="form" data-v="txt">Texte (.txt)</button> <button class="b sec sm" data-act="ccopy">Copier le texte</button></div>${cautionSendBox(c)}`:''}</div>`}
+const CAUTION_INFO=`<div class="info"><b>Ce que la caution accepte</b><ul style="margin:6px 0 0;padding-left:18px"><li>Payer à la place du locataire les loyers, charges et réparations locatives impayés, avec les intérêts et frais de procédure.</li><li>Être <b>solidaire</b> : le bailleur peut la poursuivre directement, sans attaquer d’abord le locataire (renonciation aux bénéfices de discussion et de division).</li><li>Être engagée dans la limite d’un plafond et d’une durée écrits de sa main.</li></ul></div>
+ <div class="note"><b>Poursuites en cas de non-paiement</b><ol style="margin:6px 0 0;padding-left:18px"><li>Relance amiable puis mise en demeure.</li><li>Commandement de payer délivré par un commissaire de justice, qui vise la clause résolutoire : le locataire a <b>6 semaines</b> pour régler. Il est signifié à la caution dans les <b>15 jours</b> ; à défaut, elle n’est pas tenue des pénalités et intérêts de retard.</li><li>Sans paiement : assignation devant le tribunal judiciaire (juge des contentieux de la protection) pour résilier le bail et obtenir la condamnation du locataire <b>et de la caution</b>.</li><li>Après jugement : saisies possibles (compte bancaire, salaire) contre la caution comme contre le locataire.</li><li>La caution qui paie peut se retourner contre le locataire. Elle peut aussi demander des délais de paiement au juge.</li></ol></div>`;
+const STEPS=['Candidature','Acceptée','Clés : rendez-vous','Bail signé','Location en cours'];
+function stepOf(a){if(a.status=='refusee')return -1;if(a.status=='envoyee')return 0;if(!a.rdv)return 1;if(!a.bail||!a.bail.signed)return 2;return 3}
+function steps(a){const s=stepOf(a);if(s<0)return'';return `<div class="steps">${STEPS.map((t,i)=>`<div class="${i<s?'done':i==s?'cur':''}">${t}</div>`).join('')}</div>`}
+const stBadge=a=>a.resilie?'<span class="badge bad">Bail résilié</span>':a.status=='refusee'?'<span class="badge bad">Refusée</span>':a.status=='envoyee'?'<span class="badge warn">En attente du propriétaire</span>':'<span class="badge ok">Acceptée</span>';
+function tCands(){
+ if(!S.apps.length)return `<div class="empty">Vous n’avez pas encore candidaté. Rendez-vous dans « Annonces ».</div>`;
+ return S.apps.map(a=>{const l=listing(a.listingId);
+  let h=`<div class="card"><div class="row" style="align-items:center"><div><b>${esc(l.title)}</b> — ${esc(l.city)}<div class="mut">${eur(l.rent+l.charges)}/mois charges comprises</div></div><div style="flex:0 0 auto">${stBadge(a)}</div></div>${steps(a)}`;
+  if(a.status=='acceptee'){
+   if(!a.rdv){h+=a.slots.length?`<div class="sub"><b>Choisissez un créneau pour la remise des clés</b><div class="row" style="margin-top:8px">${a.slots.map((s,i)=>`<div><button class="b sec" style="width:100%" data-act="pick" data-id="${a.id}" data-v="${i}">${fmtSlot(s)}</button></div>`).join('')}</div></div>`:`<div class="note">Le propriétaire doit encore vous proposer des créneaux de rendez-vous.</div>`}
+   else h+=`<div class="sub">📅 <b>Remise des clés :</b> ${fmtSlot(a.rdv)} avec le propriétaire (${esc(l.city)}).</div>`;
+   if(a.gli)h+=`<div class="info">Le propriétaire a souscrit une assurance loyers impayés pour ce logement.</div>`;
+   if(a.bail){h+=`<div class="sub"><b>${TYPES[a.bail.type].label}</b> — du ${fmtDate(a.bail.start)} au ${fmtDate(a.bail.end)}`;
+    if(!a.bail.signed)h+=`<pre>${esc(bailText(a))}</pre><button class="b ok" data-act="sign" data-id="${a.id}">Signer le bail électroniquement</button>`;
+    else h+=` <span class="badge ok">Signé</span>${dlButtons(a)}${payTable(a,false)}`;
+    h+=`</div>`;
+    if(a.guarantor&&a.guarantor.perso&&!a.gli)h+=`<div class="sub"><b>Acte de cautionnement solidaire</b> — ${esc(a.guarantor.perso.nom)} ${a.cautionSigned?'<span class="badge ok">Signé par le garant</span>':'<span class="badge warn">En attente de signature</span>'}
+     <details style="margin:8px 0"><summary style="cursor:pointer;color:var(--blue)">Voir l’acte, les conditions et les poursuites</summary><pre>${esc(cautionFromApp(a))}</pre><button class="b sec sm" data-act="ccopyapp" data-id="${a.id}">Copier le texte</button></details>
+     <button class="b" data-act="cdl" data-id="${a.id}" data-v="pdf">⬇ Télécharger (PDF)</button> <button class="b sec" data-act="cdl" data-id="${a.id}" data-v="txt">Texte (.txt)</button> <button class="b ok" data-act="csend" data-id="${a.id}">${a.cautionDoc?'Renvoyer':'Envoyer'} au propriétaire</button>${a.cautionDoc?' <span class="badge ok">envoyé</span>':''}</div>`}
+  }
+  h+=requestHtml(a)+noticesHtml(a);return h+`</div>`}).join('')}
+function docsOwner(a){const p=a.profile,c=a.check||{};let pv='';
+ const rows=DOCS.map(([k,n])=>{const f=p.files&&p.files[k],st=c[k],isImg=f&&f.type&&f.type.startsWith('image/');
+  if(S.prev&&S.prev.id==a.id&&S.prev.k==k)pv=`<div style="margin:8px 0"><img src="${S.prev.url}" alt="Aperçu ${esc(n)}" style="max-width:100%;max-height:380px;border:1px solid var(--line);border-radius:8px"></div>`;
+  return `<tr><td>${n}</td><td>${esc(p.docs[k]||'—')}${f?` <span class="mut">(${Math.max(1,Math.round(f.size/1024))} Ko)</span>`:''}</td>
+  <td>${f?`<a class="b sec sm" href="/api/docs/${a.tenantId}/${k}">⬇ Télécharger</a> `:''}${isImg?`<button class="b sec sm" data-act="prev" data-id="${a.id}" data-v="${k}">Aperçu</button>`:''}</td>
+  <td><select data-chk="${a.id}:${k}"><option value="">À vérifier</option><option value="ok" ${st=='ok'?'selected':''}>✓ Conforme</option><option value="ko" ${st=='ko'?'selected':''}>✗ Non conforme</option></select></td></tr>`}).join('');
+ return `<div class="sub"><b>Pièces du dossier</b><div class="mut">Téléchargez et vérifiez chaque pièce, puis marquez-la conforme ou non conforme.</div><table style="margin-top:6px"><tr><th>Pièce</th><th>Fichier</th><th></th><th>Vérification</th></tr>${rows}</table>${aplOwner(a)}${pv}${a.requested&&a.requested.length?`<div class="note">Pièces redemandées au locataire : ${a.requested.map(k=>DOCS.find(d=>d[0]==k)[1]).join(', ')}.</div>`:''}</div>`}
+function aplOwner(a){const p=a.profile,ap=p.apl,f=p.files&&p.files.apl;if(!ap&&!f)return'';const l=listing(a.listingId),tot=l.rent+l.charges;
+ return `<div class="info" style="margin-top:8px"><b>Simulation APL du locataire</b>${ap?` : environ ${eur(ap.montant)}/mois, soit un reste à charge estimé de ${eur(Math.max(0,tot-ap.montant))}.`:''} <span class="mut">Estimation non garantie : seule la CAF décide du montant réel.</span>${f?` <a class="b sec sm" href="/api/docs/${a.tenantId}/apl">⬇ Télécharger la simulation</a>`:''}</div>`}
+function cautionOwner(a){if(!a.cautionDoc)return'';
+ return `<div class="sub"><b>Acte de caution solidaire reçu</b> <span class="mut">(envoyé le ${fmtDate(a.cautionDoc.sentAt.slice(0,10))})</span><div style="margin:6px 0"><button class="b sec sm" data-act="codl" data-id="${a.id}" data-v="pdf">⬇ Télécharger (PDF)</button> <button class="b sec sm" data-act="codl" data-id="${a.id}" data-v="txt">Texte (.txt)</button></div><div class="mut">À faire signer par le garant (mention manuscrite), puis cliquez sur « J’ai reçu l’acte signé ».</div></div>`}
+function requestHtml(a){if(a.status!='envoyee'||!a.requested||!a.requested.length)return'';
+ return `<div class="sub"><div class="note"><b>Le propriétaire vous demande de renvoyer ${a.requested.length>1?'ces pièces':'cette pièce'} :</b></div>${a.requested.map(k=>`<div class="doc"><span>${DOCS.find(d=>d[0]==k)[1]}</span><label class="b sec sm" style="display:inline-block;cursor:pointer;margin:0;font-size:13px;padding:5px 10px;border-radius:9px">Envoyer un nouveau fichier<input type="file" data-adoc="${a.id}:${k}" hidden></label></div>`).join('')}</div>`}
+function oAnnonces(){return `<h2>Mes annonces</h2><div class="card"><h3>Publier une annonce</h3><div class="note">Vous êtes locataire et souhaitez sous-louer ? L’accord écrit de votre propriétaire est obligatoire et le loyer ne peut pas dépasser celui que vous payez.</div><div class="row">
+ <div><label>Titre</label><input id="nt" placeholder="T2 lumineux"></div><div><label>Ville</label><input id="nc"></div><div><label>Dépt.</label><input id="nd" placeholder="75"></div></div>
+ <div class="row" style="margin-top:10px"><div><label>Loyer (€)</label><input id="nr" type="number"></div><div><label>Charges (€)</label><input id="ng" type="number" value="0"></div><div><label>Surface (m²)</label><input id="ns" type="number"></div>
+ <div><label>Type</label><select id="nf"><option value="1">Meublé</option><option value="0">Vide</option></select></div><div style="flex:0 0 auto"><button class="b" data-act="addl">Publier</button></div></div></div>
+ ${(()=>{const mine=S.listings.filter(l=>l.ownerId==S.user.id);return mine.length?`<div class="grid">${mine.map(l=>card(l,true)).join('')}</div>`:'<div class="empty">Vous n’avez pas encore d’annonce.</div>'})()}`}
+function payTable(a,owner){const b=a.bail;if(!b)return'';
+ const late=b.pay.some(p=>p.s=='late'),allPaid=b.pay.every(p=>p.s=='paid'),good=!late&&!a.resilie,mob=!!TYPES[b.type].mob,canProlong=mob&&!b.prolonged&&b.months<10;
+ return `<table style="margin-top:10px"><tr><th>Mois</th><th>Statut</th>${owner?'<th></th>':''}</tr>${b.pay.map((p,i)=>`<tr><td>${fmtMonth(p.m)}</td><td><span class="badge ${p.s=='paid'?'ok':p.s=='late'?'bad':''}">${p.s=='paid'?'Payé':p.s=='late'?'Impayé':'À venir'}</span></td>${owner?`<td><button class="b sec sm" data-act="pay" data-id="${a.id}" data-v="${i}:paid">Payé</button> <button class="b bad sm" data-act="pay" data-id="${a.id}" data-v="${i}:late">Impayé</button></td>`:''}</tr>`).join('')}</table>
+ <div class="${good&&(mob?canProlong:true)?'info':'note'}">${late?'Loyer impayé détecté : le locataire n’est pas éligible au renouvellement ni à la prolongation.':mob?(canProlong?'Aucun impayé : le bail peut être prolongé une fois par avenant, jusqu’à 10 mois au total.':'Bail mobilité : durée maximale atteinte ou déjà prolongé, non renouvelable.'):'Aucun impayé : locataire éligible au renouvellement.'}
+ ${owner&&good&&allPaid&&(mob?canProlong:true)?` <button class="b ok sm" data-act="renew" data-id="${a.id}">${mob?'Prolonger jusqu’à 10 mois':`Renouveler le bail (${b.months} mois)`}</button>`:''}</div>
+ ${owner?impayeBlock(a):''}
+ `}
+function oCands(){
+ if(!S.apps.length)return `<div class="empty">Aucune candidature pour le moment. Elles apparaîtront ici dès qu’un locataire déposera un dossier.</div>`;
+ return S.apps.map(a=>{const l=listing(a.listingId),p=a.profile,ratio=p.revenu/(l.rent+l.charges),rc=ratio>=3?'ok':ratio>=2?'warn':'bad';
+  let h=`<div class="card"><div class="row" style="align-items:center"><div><b>${esc(p.nom)}</b> → ${esc(l.title)}, ${esc(l.city)}<div class="mut">${esc(p.situation)} · ${eur(p.revenu)}/mois · ${esc(p.email)} · ${esc(p.tel)}</div></div><div style="flex:0 0 auto">${stBadge(a)}</div></div>${steps(a)}
+  <div>Revenus / loyer : <span class="badge ${rc}">×${ratio.toFixed(1)}</span> <span class="mut">(3 ou plus est le critère usuel)</span></div>${docsOwner(a)}${cautionOwner(a)}
+  <div style="margin-top:6px">Garant : ${a.guarantor?`<b>${esc(a.guarantor.label)}</b>`:'<span class="badge warn">aucun</span>'}</div>`;
+  if(a.status=='envoyee'){const c=a.check||{},allOk=DOCS.every(([k])=>c[k]=='ok'),ko=DOCS.filter(([k])=>c[k]=='ko');
+   h+=`<div class="sub">${allOk?'':`<div class="note">Vérifiez chaque pièce (« Conforme ») avant d’accepter le dossier.</div>`}<button class="b ok" ${allOk?'':'disabled'} data-act="accept" data-id="${a.id}">Accepter le dossier</button> ${ko.length?`<button class="b sec" data-act="reqdoc" data-id="${a.id}">Redemander ${ko.length} pièce${ko.length>1?'s':''} non conforme${ko.length>1?'s':''}</button> `:''}<button class="b bad" data-act="refuse" data-id="${a.id}">Refuser</button></div>`}
+  if(a.status=='acceptee'){
+   h+=`<div class="sub"><h3>1. Rendez-vous pour la remise des clés</h3>${a.rdv?`📅 Confirmé : <b>${fmtSlot(a.rdv)}</b>`:`${a.slots.length?`<div class="mut">Créneaux proposés : ${a.slots.map(fmtSlot).join(' · ')} — en attente du choix du locataire.</div>`:''}
+   <div class="row" style="margin-top:8px"><div><label>Date</label><input type="date" id="sd-${a.id}" min="${TODAY}"></div><div><label>Heure</label><input type="time" id="st-${a.id}" value="14:00"></div><div style="flex:0 0 auto"><button class="b sec" data-act="slot" data-id="${a.id}">Proposer ce créneau</button></div></div>`}</div>`;
+   const prime=Math.round((l.rent+l.charges)*12*0.03);
+   h+=`<div class="sub"><h3>2. Assurance loyers impayés (GLI)</h3>${a.gli?`<span class="badge ok">GLI demandée</span> prime estimée ≈ ${eur(prime)}/an`:`<div class="mut">Estimation indicative : environ ${eur(prime)}/an (≈ 3 % du loyer annuel charges comprises ; le tarif réel dépend de l’assureur).</div><div style="margin-top:8px"><button class="b sec" data-act="gli" data-id="${a.id}">Souscrire une GLI</button></div>`}
+   <div class="note">Si vous souscrivez une GLI, la loi interdit en principe d’exiger en plus une caution (sauf pour un étudiant non boursier ou un apprenti). Les assureurs imposent aussi souvent un ratio revenus/loyer minimum.</div></div>`;
+   h+=`<div class="sub"><h3>3. Bail</h3>${a.bail?bailOwner(a):bailForm(a,l)}</div>`;
+  }
+  return h+`</div>`}).join('')}
+function bailForm(a,l){const opts=l.furn?['meuble12','mobilite6','mobilite7','mobilite8','mobilite9','mobilite10']:['vide36'];
+ return `<div class="row"><div><label>Type et durée</label><select id="bt-${a.id}">${opts.map(o=>`<option value="${o}">${TYPES[o].label}</option>`).join('')}</select></div><div><label>Date d’entrée</label><input type="date" id="bs-${a.id}" value="${addDays(TODAY,14)}"></div><div style="flex:0 0 auto"><button class="b" data-act="bail" data-id="${a.id}">Générer le bail</button></div></div>
+ <div class="note">${l.furn?'Logement meublé : bail d’1 an, reconduit tacitement, ou bail mobilité de 6 à 10 mois (locataire en formation, études, mission…). Un bail mobilité ne se renouvelle pas, mais peut être prolongé une fois par avenant, jusqu’à 10 mois au total, si les loyers sont payés.':'Logement vide : la loi impose une durée minimale de 3 ans.'}</div>`}
+function bailOwner(a){const b=a.bail;
+ return `<b>${TYPES[b.type].label}</b> du ${fmtDate(b.start)} au ${fmtDate(b.end)} ${b.signed?'<span class="badge ok">Signé par le locataire</span>':'<span class="badge warn">En attente de signature</span>'}
+ ${a.guarantor&&a.guarantor.perso&&!a.gli?`<div style="margin-top:6px">Caution solidaire de ${esc(a.guarantor.perso.nom)} : ${a.cautionSigned?'<span class="badge ok">acte signé</span>':'<span class="badge warn">acte en attente de signature</span> <button class="b ok sm" data-act="csign" data-id="${a.id}">J’ai reçu l’acte signé</button>'}</div>`:''}
+ <details style="margin:8px 0"><summary style="cursor:pointer;color:var(--blue)">Voir le texte du bail</summary><pre id="bt-pre-${a.id}">${esc(bailText(a))}</pre><button class="b sec sm" data-act="copy" data-id="${a.id}">Copier le texte</button></details>${b.signed?dlButtons(a)+payTable(a,true):''}`}
+const mailBadge=st=>st=='sent'?'<span class="badge ok">Envoyé</span>':st=='dev'?'<span class="badge warn">Envoi désactivé (mode test)</span>':st=='pending'?'<span class="badge">En cours</span>':'<span class="badge bad">Échec d’envoi</span>';
+function tMails(){return `<h2>Alertes e-mail</h2><div class="info">Chaque message reçu sur la plateforme (candidature, décision, rendez-vous, bail, courrier, pièce) déclenche un e-mail à <b>${esc(S.user.email)}</b>.</div>
+ ${S.mails.length?S.mails.map(m=>`<details class="card" style="padding:12px 16px"><summary style="cursor:pointer"><b>${esc(m.subject)}</b> <span class="mut">— ${new Date(m.created).toLocaleString('fr-FR',{dateStyle:'long',timeStyle:'short'})}</span> ${mailBadge(m.status)}</summary><pre>${esc(m.body)}</pre></details>`).join(''):'<div class="empty">Aucune alerte pour le moment.</div>'}`}
+const NLAB={relance:'Avertissement — loyer impayé',mise:'Mise en demeure (courrier recommandé)',cmd:'Commandement de payer',resil:'Notification de résiliation du bail (courrier recommandé)'};
+function dueInfo(a){const l=listing(a.listingId),n=a.bail.pay.filter(p=>p.s=='late').length;return{n,due:n*(l.rent+l.charges),l}}
+function impayeBlock(a){const{n,due,l}=dueInfo(a),ns=a.notices||[];if(!n&&!ns.length&&!a.resilie)return'';
+ const im=a.imp||{},cmd=im.cmd,limit=cmd?addDays(cmd,42):null,ready=!!cmd&&TODAY>=limit&&n>0&&!a.resilie;
+ let h=`<div class="card" style="border-color:#f0c4c4;background:#fffafa;margin-top:12px"><h3 style="color:var(--bad)">⚠ Gestion des impayés</h3>`;
+ if(a.resilie)h+=`<div class="note"><b>Bail résilié le ${fmtDate(a.resilie.date)}.</b> Le locataire a reçu la notification dans son espace. Tant qu’il reste dans les lieux, son départ forcé n’est possible que sur décision de justice, exécutée par un commissaire de justice.</div>`;
+ else if(!n)h+=`<div class="info">Plus aucun loyer impayé : la procédure est suspendue.</div>`;
+ else h+=`<div><b>${n} loyer${n>1?'s':''} impayé${n>1?'s':''}</b> — ${eur(due)} dus, charges comprises.</div>
+  <div class="sub"><b>1. Avertir le locataire</b> (relance amiable)<textarea id="rm-${a.id}">${esc(`Bonjour ${a.profile.nom}, sauf erreur de notre part, ${n} loyer(s) restent impayés pour un total de ${eur(due)} (logement « ${l.title} »). Merci de régulariser rapidement.`)}</textarea><button class="b sec sm" data-act="relance" data-id="${a.id}">Envoyer l’avertissement</button></div>
+  <div class="sub"><b>2. Mise en demeure par courrier recommandé</b><div class="mut">Un courrier recommandé électronique est déposé dans l’espace du locataire, avec accusé de lecture.</div><button class="b sec sm" style="margin-top:6px" data-act="mise" data-id="${a.id}">Envoyer le recommandé</button></div>
+  <div class="sub"><b>3. Commandement de payer</b> <span class="mut">(acte de commissaire de justice, qui vise la clause résolutoire)</span>${cmd?`<div style="margin-top:6px">Délivré le <b>${fmtDate(cmd)}</b> : le locataire a 6 semaines, jusqu’au <b>${fmtDate(limit)}</b>.</div><div class="note">À faire signifier aussi à la caution avant le <b>${fmtDate(addDays(cmd,15))}</b> (15 jours), sinon elle n’est pas tenue des pénalités ni des intérêts de retard.</div>`:`<div class="row" style="margin-top:6px"><div><label>Date de délivrance</label><input type="date" id="cmd-${a.id}" value="${TODAY}"></div><div style="flex:0 0 auto"><button class="b sec sm" data-act="cmd" data-id="${a.id}">Enregistrer le commandement</button></div></div>`}</div>
+  <div class="sub"><b>4. Résilier le bail</b><div class="mut">Possible uniquement 6 semaines après un commandement resté sans paiement.</div><div style="margin-top:6px"><button class="b bad sm" ${ready?'':'disabled'} data-act="resil" data-id="${a.id}">Résilier le bail et notifier le locataire</button> </div></div>`;
+ if(ns.length)h+=`<div class="sub"><b>Courriers envoyés</b><table>${ns.slice().reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${NLAB[x.type]}</td><td>${x.reco?(x.readAt?`<span class="badge ok">Lu le ${fmtDate(x.readAt)}</span>`:'<span class="badge warn">Non ouvert</span>'):'<span class="mut">message simple</span>'}</td></tr>`).join('')}</table></div>`;
+ return h+`</div>`}
+function noticesHtml(a){const ns=a.notices||[];if(!ns.length)return'';const late=a.bail&&a.bail.pay.some(p=>p.s=='late');
+ return `<div class="sub"><h3 style="color:var(--bad)">📬 Courriers du propriétaire</h3>${ns.map((x,i)=>[x,i]).reverse().map(([x,i])=>`<div class="card" style="margin:0 0 8px"><div class="row" style="align-items:center"><div><b>${NLAB[x.type]}</b><div class="mut">${fmtDate(x.date)}</div></div><div style="flex:0 0 auto">${x.reco&&!x.readAt?'<span class="badge warn">Recommandé à ouvrir</span>':x.reco?'<span class="badge ok">Lu</span>':''}</div></div>
+  ${x.reco&&!x.readAt?`<div style="margin-top:8px"><button class="b" data-act="openmail" data-id="${a.id}" data-v="${i}">✉ Ouvrir mon courrier recommandé</button></div>`:`<div style="margin-top:8px;white-space:pre-wrap">${esc(x.msg)}</div>`}</div>`).join('')}
+  ${late&&!a.resilie?`<button class="b ok sm" data-act="regul" data-id="${a.id}">J’ai régularisé : prévenir mon propriétaire</button>`:''}${a.resilie?'<div class="note">Vous pouvez saisir le juge pour demander des délais de paiement. Contactez l’ADIL de votre département pour être conseillé gratuitement.</div>':''}</div>`}
+function dlButtons(a){return `<div style="margin:10px 0"><button class="b" data-act="dlpdf" data-id="${a.id}">⬇ Télécharger le bail (PDF)</button> <button class="b sec" data-act="dltxt" data-id="${a.id}">Texte (.txt)</button></div>`}
+function makePdf(text){const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});let y=18;
+ text.split('\n').forEach((ln,i)=>{const head=ln===ln.toUpperCase()&&/[A-Z]/.test(ln);doc.setFont('helvetica',head||i==0?'bold':'normal');doc.setFontSize(i==0?13:10);
+  doc.splitTextToSize(ln||' ',180).forEach(w=>{if(y>280){doc.addPage();y=18}doc.text(w,15,y);y+=i==0?7:5.2})});
+ return doc}
+function doDl(id,kind){const a=appById(id),raw=bailText(a).replace(/[\u202f\u00a0]/g,' '),nm='Bail-'+a.profile.nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_')+'-'+a.bail.start;
+ if(kind=='pdf'){if(!window.jspdf){toast('PDF indisponible : téléchargez le texte.');return}makePdf(raw.replace(/€/g,'EUR')).save(nm+'.pdf');return}
+ const u=URL.createObjectURL(new Blob([raw],{type:'text/plain;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download=nm+'.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function bailText(a){const l=listing(a.listingId),b=a.bail,T=TYPES[b.type],dep=T.depot(l.rent);
+ return `CONTRAT DE LOCATION — ${T.label.toUpperCase()}
+(Modèle indicatif — à faire valider avant usage réel)
+
+ENTRE
+Le bailleur : ${l.ownerName||'Propriétaire'}
+ET
+Le locataire : ${a.profile.nom} — ${a.profile.email}
+
+DÉSIGNATION DU LOGEMENT
+${l.title}, ${l.city} (${l.dept}) — ${l.surface} m², ${l.rooms} pièce(s), ${l.furn?'meublé':'non meublé'}.
+
+DURÉE
+${b.months} mois, du ${fmtDate(b.start)} au ${fmtDate(b.end)}.
+${T.renew?`Renouvellement : reconduction tacite pour une durée identique, sauf congé délivré dans les formes et délais légaux. La plateforme signale au bailleur si le locataire a toujours payé son loyer à temps.`:`Bail mobilité : non renouvelable. Il peut être prolongé une seule fois par avenant, dans la limite de 10 mois au total, si le locataire a payé ses loyers sans incident (la plateforme le signale au bailleur).`}
+
+CONDITIONS FINANCIÈRES
+Loyer mensuel : ${eur(l.rent)} · Charges : ${eur(l.charges)} · Total : ${eur(l.rent+l.charges)}
+Dépôt de garantie : ${dep?eur(dep):'aucun (bail mobilité)'}
+
+GARANTIES
+${a.gli?'Assurance loyers impayés souscrite par le bailleur.\n':''}${a.guarantor?'Garant : '+a.guarantor.label+'.':a.gli?'':'Aucun garant déclaré.'}
+
+DISPOSITIONS LÉGALES
+Soumis à la ${T.ref}.
+Annexes à joindre : diagnostics (DPE…), état des lieux d’entrée, notice d’information, ${l.furn?'inventaire du mobilier':'état des risques'}.
+
+Fait le ${fmtDate(TODAY)}.
+Signatures : le bailleur ______________   le locataire ${b.signed?'(signé électroniquement)':'______________'}`}
+
+function nw(n){n=Math.max(0,Math.min(999999,Math.round(n)));if(!n)return'zéro';
+ const u=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'],t=['','','vingt','trente','quarante','cinquante','soixante'];
+ const b100=(n,f)=>{if(n<20)return u[n];if(n<70){const d=Math.floor(n/10),r=n%10;return t[d]+(r==1?' et un':r?'-'+u[r]:'')}
+  if(n<80){const r=n-60;return 'soixante'+(r==11?' et onze':'-'+u[r])}
+  const r=n-80;return r==0?'quatre-vingt'+(f?'s':''):'quatre-vingt-'+u[r]};
+ const b1000=(n,f)=>{const h=Math.floor(n/100),r=n%100;let s='';if(h)s=(h>1?u[h]+' ':'')+'cent'+(h>1&&!r&&f?'s':'');if(r)s+=(s?' ':'')+b100(r,f);return s};
+ const th=Math.floor(n/1000),r=n%1000;let s='';if(th)s=(th==1?'':b1000(th,false)+' ')+'mille';if(r)s+=(s?' ':'')+b1000(r,true);return s}
+function cautionText(p){const lo=p.loyer,ch=p.charges,pl=Number(p.plafond)||(lo+ch)*p.months;
+ const amt=x=>`${eur(x)} (${nw(x)} euro${x>1?'s':''})`,gn=p.g.nom||'[nom du garant]',ga=p.g.adr||'[adresse du garant]',tn=p.tenant||'[nom du locataire]';
+ const ini=p.scope=='initiale';
+ const dur=ini?`${p.months} mois à compter du ${fmtDate(p.start)} (durée initiale du bail, sans extension en cas de reconduction)`:`la durée du bail à compter du ${fmtDate(p.start)}, reconductions comprises (durée indéterminée : la caution peut résilier, la résiliation prenant effet au terme du bail en cours)`;
+ return `ACTE DE CAUTIONNEMENT SOLIDAIRE — BAIL D’HABITATION
+(Modèle indicatif — à faire valider avant usage réel)
+
+ENTRE
+Le bailleur : propriétaire du logement « ${p.logement} »
+LE LOCATAIRE : ${tn}
+LA CAUTION : ${gn}, domicilié(e) ${ga}${p.g.mail?' — '+p.g.mail:''}
+
+1. OBLIGATION GARANTIE
+La caution garantit le paiement du loyer, des charges, des indemnités d’occupation et des réparations locatives dus par le locataire, ainsi que les intérêts et frais de procédure en cas d’impayé.
+
+2. LOYER ET RÉVISION
+Loyer mensuel : ${eur(lo)}, charges : ${eur(ch)}. Le loyer est révisable chaque année selon l’indice de référence des loyers (IRL).
+
+3. MONTANT ET DURÉE
+Plafond de l’engagement : ${amt(pl)}.
+Durée : ${dur}.
+
+4. SOLIDARITÉ
+La caution s’engage solidairement avec le locataire. Elle renonce au bénéfice de discussion et au bénéfice de division : le bailleur peut lui réclamer directement la totalité de la dette, dans la limite du plafond.
+
+5. MENTION MANUSCRITE (à recopier à la main par la caution, sans dactylographie ni aide d’un tiers, sous peine de nullité)
+« Je soussigné(e) ${gn}, me porte caution solidaire de ${tn} pour le paiement du loyer de ${amt(lo)} par mois, révisable chaque année selon l’IRL, des charges et de toutes sommes dues au titre du bail du logement « ${p.logement} », dans la limite de ${amt(pl)}, pour une durée de ${ini?p.months+' mois à compter du '+fmtDate(p.start):'la durée du bail, reconductions comprises'}. En renonçant au bénéfice de discussion et au bénéfice de division, je reconnais ne pouvoir exiger du bailleur qu’il poursuive d’abord le locataire ni qu’il divise ses poursuites, et je m’engage à le payer sur mes revenus et mes biens si le locataire n’y satisfait pas lui-même. »
+
+6. INFORMATION DE LA CAUTION
+Le bailleur remet à la caution un exemplaire du bail. En cas d’impayé, le commandement de payer est signifié à la caution dans les 15 jours suivant sa signification au locataire ; à défaut, elle n’est pas tenue des pénalités ni des intérêts de retard.
+
+7. POURSUITES EN CAS DE NON-PAIEMENT
+a) Relance amiable, puis mise en demeure.
+b) Commandement de payer par commissaire de justice visant la clause résolutoire : 6 semaines pour régler.
+c) Sans paiement : assignation devant le tribunal judiciaire (juge des contentieux de la protection) en résiliation du bail et en paiement, contre le locataire et la caution.
+d) Après jugement : exécution forcée (saisie sur compte bancaire, sur salaire…), y compris contre la caution.
+e) La caution qui a payé est subrogée dans les droits du bailleur et peut se retourner contre le locataire. Elle peut demander des délais de paiement au juge.
+
+Fait le ${fmtDate(TODAY)}.
+Signature de la caution (précédée de la mention manuscrite) : ______________
+Signature du bailleur : ______________   Signature du locataire : ______________`}
+function cautionFromApp(a){const l=listing(a.listingId),b=a.bail;return cautionText({tenant:a.profile.nom,logement:l.title+', '+l.city,loyer:l.rent,charges:l.charges,months:b.months,start:b.start,scope:'initiale',plafond:'',g:{nom:a.guarantor.perso.nom,adr:'',mail:a.guarantor.perso.mail}})}
+
+/* ---------- API ---------- */
+async function api(method,url,body){
+ let r;try{r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,credentials:'same-origin'})}catch(e){return{ok:false,status:0,error:'Connexion au serveur impossible.'}}
+ let j={};try{j=await r.json()}catch(e){}
+ if(r.status==401&&S.user){S.user=null;render()}
+ return{ok:r.ok,status:r.status,...j}}
+const pickApps=()=>{S.apps=S.role=='owner'?S.ownerApps:S.tenantApps};
+async function load(){const r=await api('GET','/api/bootstrap');if(!r.ok)return false;
+ S.user=r.user;if(!S.spaceInit){S.role=r.user.role;S.spaceInit=true}S.listings=r.listings;S.tenantApps=r.tenantApps;S.ownerApps=r.ownerApps;pickApps();S.mails=r.mails;
+ S.profile=r.profile;S.guarantor=r.profile.guarantor||null;
+ if(!listing(S.caution.listingId)&&S.listings[0])S.caution.listingId=S.listings[0].id;return true}
+async function act(url,body){const r=await api('POST',url,body||{});if(!r.ok){toast(r.error||'Erreur');return r}if(r.message)toast(r.message);await load();render();return r}
+const saveProfile=()=>api('PUT','/api/profile',{apl:S.profile.apl||undefined,nom:S.profile.nom,email:S.profile.email,tel:S.profile.tel,situation:S.profile.situation,revenu:S.profile.revenu,guarantor:S.guarantor});
+const fileB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
+async function upload(k,f){if(f.size>8*1024*1024){toast('Fichier trop volumineux (8 Mo maximum).');return}
+ await saveProfile();const r=await api('POST','/api/docs/'+k,{filename:f.name,dataBase64:await fileB64(f)});
+ if(!r.ok){toast(r.error||'Envoi impossible');return}toast(r.message||'Pièce enregistrée.');await load();render()}
+const V=id=>document.getElementById(id).value;
+const A={
+ tab(id,v){S.tab=v;render()},
+ space(id,v){S.role=v;S.tab='annonces';S.prev=null;pickApps();render()},
+ search(){S.filters={q:V('fq'),max:V('fmax'),furn:V('ffurn')};render()},
+ authmode(){S.auth.mode=S.auth.mode=='login'?'register':'login';render()},
+ async login(){const r=await api('POST','/api/login',{email:V('ae'),password:V('ap')});if(!r.ok){toast(r.error||'Connexion impossible');return}await load();S.tab='annonces';render()},
+ async register(){const r=await api('POST','/api/register',{name:V('an'),role:V('ar'),email:V('ae'),password:V('ap')});if(!r.ok){toast(r.error||'Inscription impossible');return}await load();S.tab=S.role=='tenant'?'dossier':'annonces';render()},
+ async logout(){await api('POST','/api/logout',{});S.user=null;S.spaceInit=false;S.apps=[];S.tenantApps=[];S.ownerApps=[];S.mails=[];S.profile={nom:'',email:'',tel:'',situation:'CDI',revenu:'',docs:{},files:{}};S.guarantor=null;S.auth={mode:'login'};render()},
+ async apply(id){if(!dossierOk()){toast('Complétez d’abord votre dossier (infos + 5 pièces).');S.tab='dossier';render();return}
+  await saveProfile();const r=await act('/api/apps',{listingId:+id});if(r.ok){S.tab='cands';render()}},
+ guar(id,v){const g=GARANTS.find(x=>x.id==v);S.guarantor={label:g.nom};saveProfile();toast('Garant enregistré.');render()},
+ guarp(){const n=V('gn').trim(),e=V('ge').trim();if(!n||!e){toast('Renseignez le nom et l’e-mail du garant.');return}S.guarantor={label:`Caution de ${n} (${e})`,perso:{nom:n,mail:e}};S.caution.gnom=n;S.caution.gmail=e;S.caution.text='';saveProfile();render()},
+ aplsave(){const v=Math.round(Number(V('aplm')));if(!(v>0)){toast('Indiquez le montant de l’APL estimée.');return}S.profile.apl={montant:v};saveProfile().then(async()=>{toast('Simulation APL enregistrée.');await load();render()})},
+ sendapl:async id=>{await saveProfile();act(`/api/apps/${id}/sendapl`)},
+ csend:async id=>{act(`/api/apps/${id}/csend`,{text:cautionFromApp(appById(id))})},
+ csendform(){const id=V('csel');if(!id){toast('Candidatez d’abord à ce logement.');return}act(`/api/apps/${id}/csend`,{text:S.caution.text})},
+ codl(id,v){cautionDl(appById(id).cautionDoc.text,v)},
+ cdl(id,v){cautionDl(id=='form'?S.caution.text:cautionFromApp(appById(id)),v)},
+ noguar(){S.guarantor=null;saveProfile();render()},
+ accept:id=>act(`/api/apps/${id}/accept`),refuse:id=>act(`/api/apps/${id}/refuse`),reqdoc:id=>act(`/api/apps/${id}/reqdoc`),
+ gli:id=>act(`/api/apps/${id}/gli`),sign:id=>act(`/api/apps/${id}/sign`),csign:id=>act(`/api/apps/${id}/csign`),
+ mise:id=>act(`/api/apps/${id}/mise`),resil:id=>act(`/api/apps/${id}/resil`),regul:id=>act(`/api/apps/${id}/regul`),renew:id=>act(`/api/apps/${id}/renew`),
+ slot(id){const d=V('sd-'+id),t=V('st-'+id);if(!d||!t){toast('Choisissez une date et une heure.');return}act(`/api/apps/${id}/slot`,{d,t})},
+ pick:(id,v)=>act(`/api/apps/${id}/pick`,{i:+v}),
+ bail(id){const start=V('bs-'+id);if(!start){toast('Indiquez la date d’entrée.');return}act(`/api/apps/${id}/bail`,{type:V('bt-'+id),start})},
+ pay(id,v){const[i,st]=v.split(':');act(`/api/apps/${id}/pay`,{i:+i,s:st})},
+ relance:id=>act(`/api/apps/${id}/relance`,{msg:V('rm-'+id)}),
+ cmd(id){const date=V('cmd-'+id);if(!date){toast('Indiquez la date de délivrance.');return}act(`/api/apps/${id}/cmd`,{date})},
+ openmail:(id,v)=>act(`/api/apps/${id}/openmail`,{i:+v}),
+ prev(id,v){const a=appById(id);S.prev=S.prev&&S.prev.id==id&&S.prev.k==v?null:{id,k:v,url:`/api/docs/${a.tenantId}/${v}?inline=1`};render()},
+ dlpdf(id){doDl(id,'pdf')},dltxt(id){doDl(id,'txt')},
+ copy(id){navigator.clipboard.writeText(bailText(appById(id))).then(()=>toast('Texte copié.')).catch(()=>toast('Sélectionnez le texte pour le copier.'))},
+ cgen(){const c=S.caution,l=listing(c.listingId);if(!l){toast('Aucune annonce disponible.');return}if(!c.start){toast('Indiquez la date d’entrée.');return}if(!c.gnom.trim()){toast('Indiquez le nom du garant.');return}
+  c.text=cautionText({tenant:S.profile.nom,logement:l.title+', '+l.city,loyer:l.rent,charges:l.charges,months:+c.months,start:c.start,scope:c.scope,plafond:c.plafond,g:{nom:c.gnom.trim(),adr:c.gadr.trim(),mail:c.gmail.trim()}});toast('Acte généré.');render()},
+ ccopy(){navigator.clipboard.writeText(S.caution.text).then(()=>toast('Texte copié.')).catch(()=>toast('Sélectionnez le texte pour le copier.'))},
+ ccopyapp(id){navigator.clipboard.writeText(cautionFromApp(appById(id))).then(()=>toast('Texte copié.')).catch(()=>toast('Sélectionnez le texte pour le copier.'))},
+ async addl(){const g=i=>V(i).trim();if(!g('nt')||!g('nc')||!g('nr')){toast('Titre, ville et loyer sont requis.');return}
+  await act('/api/listings',{title:g('nt'),city:g('nc'),dept:g('nd'),surface:+g('ns')||0,rooms:1,rent:+g('nr'),charges:+g('ng')||0,furn:g('nf')=='1'})}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&A[b.dataset.act])A[b.dataset.act](b.dataset.id,b.dataset.v)});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&['ae','ap','an'].includes(e.target.id)){const b=document.querySelector('#app [data-act="login"],#app [data-act="register"]');if(b)b.click()}});
+document.addEventListener('input',e=>{const c=e.target.dataset.c;if(c){S.caution[c]=e.target.value;if(!['gnom','gadr','gmail','plafond','start'].includes(c))S.caution.text=''}
+ const f=e.target.dataset.f;if(f){S.profile[f]=e.target.value;const p=dossierPct(),a=document.getElementById('pct'),b=document.getElementById('pbar');if(a)a.textContent=p;if(b)b.style.width=p+'%'}});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.chk){const[i,k]=t.dataset.chk.split(':');act(`/api/apps/${i}/check`,{key:k,value:t.value});return}
+ if(t.dataset.f){saveProfile();return}
+ const k=t.dataset.doc||(t.dataset.adoc&&t.dataset.adoc.split(':')[1]);if(k&&t.files[0]){upload(k,t.files[0]);t.value=''}});
+render();
+load().then(()=>{S.loading=false;render()});
+</script>
+</body>
+</html>
